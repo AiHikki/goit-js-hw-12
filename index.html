@@ -7,9 +7,26 @@
     <title>Gallery</title>
     
     <script type="module" crossorigin src="/goit-js-hw-12/commonHelpers.js"></script>
-    <link rel="stylesheet" href="/goit-js-hw-12/assets/index-c9db6b34.css">
+    <link rel="modulepreload" crossorigin href="/goit-js-hw-12/assets/vendor-906f2679.js">
+    <link rel="stylesheet" href="/goit-js-hw-12/assets/vendor-eb6030bc.css">
+    <link rel="stylesheet" href="/goit-js-hw-12/assets/index-9f7298da.css">
   </head>
   <body>
+    <form id="form" class="form" autocomplete="off">
+      <label>
+        <input
+          class="search-input"
+          id="searchInput"
+          type="text"
+          placeholder="Search images..."
+          name="searchInput"
+      /></label>
+      <button class="search-btn" type="submit">Search</button>
+    </form>
+
+    <ul class="gallery" id="gallery"></ul>
+    <button class="load-images-btn hide" id="loadBtn">Load more</button>
+    <div class="loader hide"></div>
     
   </body>
 </html>
