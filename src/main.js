@@ -47,9 +47,8 @@ async function fetchImages(e) {
         'Sorry, there are no images matching your search query. Please try again!'
       );
     }
-    setTimeout(() => {
-      renderImages(images.hits);
-    }, 2000);
+
+    renderImages(images.hits);
   } catch (error) {
     showMessage('Oops... Something went wrong');
   }
