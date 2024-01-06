@@ -115,7 +115,7 @@ body {
 
 /* RESPONSIVE */
 
-@media (max-width: 369px) {
+@media (max-width: 599px) {
   .form {
     display: flex;
     flex-direction: column;
