@@ -1,7 +1,10 @@
 import axios from 'axios';
-
 import showMessage from './scripts/iziToast.js';
-import { lightbox } from './scripts/lightbox.js';
+import lightbox from './scripts/lightbox.js';
+
+const API_KEY = '41474300-2fa05bee877be877b8dc1781f';
+const API_BASE_URL = 'https://pixabay.com/api/';
+axios.defaults.baseURL = API_BASE_URL;
 
 const form = document.querySelector('#form'),
   searchInput = document.querySelector('#searchInput'),
@@ -9,48 +12,40 @@ const form = document.querySelector('#form'),
   loadImagesBtn = document.querySelector('#loadBtn'),
   loader = document.querySelector('.loader');
 
-let windowScroll = innerHeight;
+let scrollOffset = innerHeight;
 let page = 1;
 const per_page = 40;
 let userSearchRequest;
 
-window.scrollBy(0, windowScroll);
+window.scrollBy(0, scrollOffset);
 
-form.addEventListener('submit', fetchImages);
-loadImagesBtn.addEventListener('click', loadImages);
+form.addEventListener('submit', handleFormSubmit);
+loadImagesBtn.addEventListener('click', loadMoreImages);
 
-async function fetchImages(e) {
+async function handleFormSubmit(e) {
   e.preventDefault();
-  page = 1;
-  loader.classList.remove('hide');
-  loadImagesBtn.classList.add('hide');
-  gallery.innerHTML = '';
-
-  axios.defaults.baseURL = 'https://pixabay.com/api/';
+  resetGallery();
   userSearchRequest = searchInput.value;
+  await fetchAndRenderImages();
+}
 
+async function fetchAndRenderImages() {
   try {
-    const response = await axios.get('', {
-      params: {
-        key: '41474300-2fa05bee877be877b8dc1781f',
-        q: userSearchRequest,
-        orientation: 'horizontal',
-        image_type: 'photo',
-        safesearch: true,
-        page,
-        per_page,
-      },
+    const response = await axios.get(API_BASE_URL, {
+      params: getAPIParams(),
     });
     const images = response.data;
     if (images.hits.length === 0) {
       return showMessage(
-        'Sorry, there are no images matching your search query. Please try again!'
+        'Sorry, no images match your search query. Please try again!'
       );
     }
-
     renderImages(images.hits);
+    handleLoadMoreButton(images.totalHits);
   } catch (error) {
-    showMessage('Oops... Something went wrong');
+    handleAPIError();
+  } finally {
+    loader.classList.add('hide');
   }
 }
 
@@ -92,38 +87,48 @@ function renderImages(images) {
   );
 
   gallery.insertAdjacentHTML('beforeend', markup);
-  windowScroll = document
+  scrollOffset = document
     .querySelector('.gallery-item')
     .getBoundingClientRect().height;
 
-  loader.classList.add('hide');
-  loadImagesBtn.classList.remove('hide');
   lightbox.refresh();
 }
 
-async function loadImages() {
-  loader.classList.remove('hide');
+async function loadMoreImages() {
   loadImagesBtn.classList.add('hide');
-  const response = await axios.get('', {
-    params: {
-      key: '41474300-2fa05bee877be877b8dc1781f',
-      q: userSearchRequest,
-      orientation: 'horizontal',
-      image_type: 'photo',
-      safesearch: true,
-      page,
-      per_page,
-    },
-  });
-  const images = response.data;
-  const totalPages = Math.ceil(images.totalHits / per_page);
+  loader.classList.remove('hide');
+  await fetchAndRenderImages();
+  // loadImagesBtn.classList.add('hide');
+}
 
-  renderImages(images.hits);
+function resetGallery() {
+  loadImagesBtn.classList.add('hide');
+  loader.classList.remove('hide');
+  page = 1;
+  gallery.innerHTML = '';
+}
 
+function getAPIParams() {
+  return {
+    key: API_KEY,
+    q: userSearchRequest,
+    orientation: 'horizontal',
+    image_type: 'photo',
+    safesearch: true,
+    page,
+    per_page,
+  };
+}
+
+function handleLoadMoreButton(totalHits) {
+  const totalPages = Math.ceil(totalHits / per_page);
   if (page > totalPages) {
-    loadImagesBtn.classList.add('hide');
-    loader.classList.add('hide');
     showMessage("We're sorry, but you've reached the end of search results.");
-    return;
+  } else {
+    loadImagesBtn.classList.remove('hide');
   }
+}
+
+function handleAPIError() {
+  showMessage('Oops... Something went wrong');
 }
